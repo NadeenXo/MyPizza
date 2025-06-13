@@ -126,10 +126,10 @@ private fun IngredientSection(modifier: Modifier) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         item { AddIngredient(R.drawable.basil_8) }
-        item { AddIngredient(R.drawable.basil_8) }
+        item { AddIngredient(R.drawable.onion_3) }
         item { AddIngredient(R.drawable.broccoli_3) }
-        item { AddIngredient(R.drawable.plate) }
-        item { AddIngredient(R.drawable.bread_1) }
+        item { AddIngredient(R.drawable.mushroom_3) }
+        item { AddIngredient(R.drawable.sausage_3) }
     }
 }
 
@@ -206,7 +206,7 @@ fun AddIngredient(img: Int) {
             disabledContainerColor = Color.White,
             disabledContentColor = Color.White
         ),
-        modifier = Modifier.size(80.dp)
+        modifier = Modifier.size(90.dp)
     ) {
         Image(
             painter = painterResource(img),
