@@ -1,6 +1,5 @@
 package com.example.mypizza
 
-import android.R.attr.fontWeight
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -51,10 +53,78 @@ fun PizzaScreen(modifier: Modifier) {
         R.drawable.bread_4,
         R.drawable.bread_5
     )
+    val onionImages = listOf(
+        R.drawable.onion_1,
+        R.drawable.onion_2,
+        R.drawable.onion_3,
+        R.drawable.onion_4,
+        R.drawable.onion_5,
+        R.drawable.onion_6,
+        R.drawable.onion_7,
+        R.drawable.onion_8,
+    )
+
+    val basilImages = listOf(
+        R.drawable.basil_1,
+        R.drawable.basil_2,
+        R.drawable.basil_3,
+        R.drawable.basil_4,
+        R.drawable.basil_5,
+        R.drawable.basil_6,
+        R.drawable.basil_7,
+        R.drawable.basil_8,
+    )
+
+    val broccoliImages = listOf(
+        R.drawable.broccoli_1,
+        R.drawable.broccoli_2,
+        R.drawable.broccoli_3,
+        R.drawable.broccoli_4,
+        R.drawable.broccoli_5,
+        R.drawable.broccoli_6,
+        R.drawable.broccoli_7,
+        R.drawable.broccoli_8,
+    )
+
+    val mushroomImages = listOf(
+        R.drawable.mushroom_1,
+        R.drawable.mushroom_2,
+        R.drawable.mushroom_3,
+        R.drawable.mushroom_4,
+        R.drawable.mushroom_5,
+        R.drawable.mushroom_6,
+        R.drawable.mushroom_7,
+        R.drawable.mushroom_8,
+    )
+
+    val sausageImages = listOf(
+        R.drawable.sausage_1,
+        R.drawable.sausage_2,
+        R.drawable.sausage_3,
+        R.drawable.sausage_4,
+        R.drawable.sausage_5,
+        R.drawable.sausage_6,
+        R.drawable.sausage_7,
+        R.drawable.sausage_8,
+    )
+
+    val toppingImagesMap = mapOf(
+        "onion" to onionImages,
+        "basil" to basilImages,
+        "broccoli" to broccoliImages,
+        "mushroom" to mushroomImages,
+        "sausage" to sausageImages
+    )
+
     val selectedBreadIndex = rememberSaveable { mutableIntStateOf(0) }
     val breadSizes = rememberSaveable {
         mutableStateOf(List(breadImages.size) { "M" })
     }
+    val toppingsPerBread = rememberSaveable {
+        mutableStateOf(List(breadImages.size) { mutableSetOf<String>() })
+    }
+
+    val selectedToppings = toppingsPerBread.value[selectedBreadIndex.intValue]
 
     val gestureModifier = modifier.pointerInput(Unit) {
         forEachGesture {
@@ -90,7 +160,10 @@ fun PizzaScreen(modifier: Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Header(modifier)
-        Plate(modifier, currentSize, breadImages[currentIndex])
+//        Plate(modifier, currentSize, breadImages[currentIndex])
+        Plate(modifier, currentSize, breadImages[currentIndex], selectedToppings, toppingImagesMap)
+
+
         PizzaSizeSelector(
             modifier = Modifier.padding(8.dp),
             selectedSize = currentSize,
@@ -100,7 +173,7 @@ fun PizzaScreen(modifier: Modifier) {
                 }
             }
         )
-        IngredientSection(modifier)
+        IngredientSection(modifier, selectedToppings)
         Spacer(modifier = Modifier.weight(0.1f))
         AddToCartBtn(modifier)
         Spacer(modifier = Modifier.weight(1f))
@@ -108,7 +181,10 @@ fun PizzaScreen(modifier: Modifier) {
 }
 
 @Composable
-private fun IngredientSection(modifier: Modifier) {
+private fun IngredientSection(
+    modifier: Modifier,
+    selectedToppings: MutableSet<String>,
+) {
     Text(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,13 +201,42 @@ private fun IngredientSection(modifier: Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        item { AddIngredient(R.drawable.basil_8) }
-        item { AddIngredient(R.drawable.onion_3) }
-        item { AddIngredient(R.drawable.broccoli_3) }
-        item { AddIngredient(R.drawable.mushroom_3) }
-        item { AddIngredient(R.drawable.sausage_3) }
+
+        item { AddIngredientButton("basil", R.drawable.basil_8, selectedToppings) }
+        item { AddIngredientButton("onion", R.drawable.onion_3, selectedToppings) }
+        item { AddIngredientButton("broccoli", R.drawable.broccoli_3, selectedToppings) }
+        item { AddIngredientButton("mushroom", R.drawable.mushroom_3, selectedToppings) }
+        item { AddIngredientButton("sausage", R.drawable.sausage_3, selectedToppings) }
+    }
+
+}
+
+
+@Composable
+fun AddIngredientButton(
+    name: String,
+    imageId: Int,
+    selectedToppings: MutableSet<String>,
+) {
+    val isSelected = remember { mutableStateOf(name in selectedToppings) }
+
+    Button(
+        onClick = {
+            val willSelect = !isSelected.value
+            isSelected.value = willSelect
+            if (willSelect) selectedToppings.add(name)
+            else selectedToppings.remove(name)
+        },
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isSelected.value) Color(0xFFD0E8FF) else Color.White
+        ),
+        modifier = Modifier.size(90.dp)
+    ) {
+        Image(painter = painterResource(id = imageId), contentDescription = null)
     }
 }
+
 
 @Composable
 private fun AddToCartBtn(modifier: Modifier) {
@@ -142,14 +247,24 @@ private fun AddToCartBtn(modifier: Modifier) {
             disabledContentColor = Color.White
         )
     ) {
-        Icon(painterResource(R.drawable.fav), contentDescription = "shopping cart")
+        Icon(
+            painterResource(R.drawable.shopping_cart),
+            contentDescription = "shopping cart",
+            tint = Color.White, modifier = modifier.size(32.dp)
+        )
         Spacer(modifier.padding(4.dp))
         Text("Add to cart")
     }
 }
 
 @Composable
-fun Plate(modifier: Modifier, pizzaSize: String, bread: Int) {
+fun Plate(
+    modifier: Modifier,
+    pizzaSize: String,
+    bread: Int,
+    selectedToppings: Set<String>,
+    toppingImagesMap: Map<String, List<Int>>
+) {
     val sizeDp = when (pizzaSize.lowercase()) {
         "s" -> 180.dp
         "m" -> 200.dp
@@ -183,6 +298,9 @@ fun Plate(modifier: Modifier, pizzaSize: String, bread: Int) {
                 contentDescription = "bread",
                 modifier = Modifier.width(animatedSize.value)
             )
+            Box(modifier = Modifier.width(sizeDp)) {
+                ToppingOverlay(pizzaSize, selectedToppings, toppingImagesMap)
+            }
         }
         Text(
             text = "$$basePrice",
@@ -243,6 +361,56 @@ fun PizzaSizeSelector(modifier: Modifier, selectedSize: String, onSizeSelected: 
 
             }
         }
+    }
+}
+
+@Composable
+fun ToppingOverlay(
+    pizzaSize: String,
+    selectedToppings: Set<String>,
+    toppingImagesMap: Map<String, List<Int>>
+) {
+    val positions = when (pizzaSize.lowercase()) {
+        "s" -> listOf(
+            DpOffset(40.dp, 20.dp), DpOffset(60.dp, 60.dp),
+            DpOffset(100.dp, 30.dp), DpOffset(130.dp, 70.dp),
+            DpOffset(90.dp, 100.dp), DpOffset(30.dp, 90.dp),
+            DpOffset(70.dp, 40.dp), DpOffset(120.dp, 110.dp)
+        )
+
+        "m" -> listOf(
+            DpOffset(50.dp, 30.dp), DpOffset(70.dp, 70.dp),
+            DpOffset(110.dp, 40.dp), DpOffset(140.dp, 80.dp),
+            DpOffset(100.dp, 120.dp), DpOffset(40.dp, 100.dp),
+            DpOffset(80.dp, 50.dp), DpOffset(130.dp, 130.dp)
+        )
+
+        else -> listOf(
+            DpOffset(60.dp, 40.dp), DpOffset(80.dp, 80.dp),
+            DpOffset(120.dp, 50.dp), DpOffset(150.dp, 90.dp),
+            DpOffset(110.dp, 140.dp), DpOffset(50.dp, 110.dp),
+            DpOffset(90.dp, 60.dp), DpOffset(140.dp, 150.dp)
+        )
+    }
+
+
+    var drawn = 0
+    for (topping in selectedToppings) {
+        val images = toppingImagesMap[topping].orEmpty()
+        for (img in images) {
+            if (drawn >= positions.size) break
+            val offset = positions[drawn]
+            Image(
+                painter = painterResource(id = img),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(40.dp)
+                    .padding(4.dp)
+                    .offset(offset.x, offset.y)
+            )
+            drawn++
+        }
+
     }
 }
 
