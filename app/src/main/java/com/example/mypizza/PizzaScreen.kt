@@ -1,6 +1,8 @@
 package com.example.mypizza
 
+import android.R.attr.fontWeight
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -153,8 +155,13 @@ fun Plate(modifier: Modifier, pizzaSize: String, bread: Int) {
         "m" -> 200.dp
         else -> 220.dp
     }
+    val basePrice = when (pizzaSize.lowercase()) {
+        "s" -> 12
+        "m" -> 15
+        else -> 17
+    }
 
-    val animatedSize = androidx.compose.animation.core.animateDpAsState(
+    val animatedSize = animateDpAsState(
         targetValue = sizeDp,
         label = "animateBreadSize"
     )
@@ -177,14 +184,8 @@ fun Plate(modifier: Modifier, pizzaSize: String, bread: Int) {
                 modifier = Modifier.width(animatedSize.value)
             )
         }
-        val basePrice = when (pizzaSize) {
-            "s" -> 12
-            "m" -> 15
-            else -> 17
-        }
         Text(
             text = "$$basePrice",
-
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(8.dp)
@@ -197,7 +198,6 @@ fun AddIngredient(img: Int) {
     val isSelected = rememberSaveable { mutableStateOf(false) }
 
     Button(
-//        onClick = onToggle,
         onClick = { isSelected.value = !isSelected.value },
         shape = CircleShape,
         colors = ButtonColors(
@@ -211,7 +211,6 @@ fun AddIngredient(img: Int) {
         Image(
             painter = painterResource(img),
             contentDescription = "",
-//            modifier = Modifier.size(32.dp)
         )
     }
 }
@@ -225,8 +224,6 @@ fun PizzaSizeSelector(modifier: Modifier, selectedSize: String, onSizeSelected: 
                 targetValue = if (isSelected) Color.LightGray else Color.White,
                 label = "pizzaSizeColor"
             )
-//            val textColor = if (isSelected) Color.White else Color.LightGray
-
             Button(
                 onClick = { onSizeSelected(size) },
                 shape = CircleShape,
@@ -234,12 +231,13 @@ fun PizzaSizeSelector(modifier: Modifier, selectedSize: String, onSizeSelected: 
                     containerColor = bgColor.value,
                     contentColor = Color.Black
                 ),
-                modifier = Modifier.padding(horizontal = 4.dp)
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(62.dp)
             ) {
-//                Text(size)
                 Text(
-                    text = size,
-                    color = if (isSelected) Color.Black else Color.Gray,
+                    text = size, fontSize = 16.sp,
+                    color = Color.Black,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                 )
 
