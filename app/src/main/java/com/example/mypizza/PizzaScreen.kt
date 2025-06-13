@@ -1,9 +1,14 @@
 package com.example.mypizza
 
+import android.R.attr.fontWeight
 import android.R.attr.textColor
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitHorizontalDragOrCancellation
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +33,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,20 +42,51 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
 @Composable
 fun PizzaScreen(modifier: Modifier) {
     val selectedSize = rememberSaveable { mutableStateOf("L") }
+    val breadImages = listOf(
+        R.drawable.bread_1,
+        R.drawable.bread_2,
+        R.drawable.bread_3,
+        R.drawable.bread_4,
+        R.drawable.bread_5
+    )
+    val selectedBreadIndex = rememberSaveable { mutableStateOf(0) }
+
+    val gestureModifier = modifier.pointerInput(Unit) {
+        forEachGesture {
+            awaitPointerEventScope {
+                val down = awaitFirstDown()
+                val drag = awaitHorizontalDragOrCancellation(down.id)
+
+                drag?.let {
+                    val currentIndex = selectedBreadIndex.value
+
+                    if (it.positionChange().x > 50 && currentIndex > 0) {
+                        // Swipe right - move to previous item if not at first
+                        selectedBreadIndex.value = currentIndex - 1
+                    } else if (it.positionChange().x < -50 && currentIndex < breadImages.lastIndex) {
+                        // Swipe left - move to next item if not at last
+                        selectedBreadIndex.value = currentIndex + 1
+                    }
+
+                    it.consume()
+                }
+            }
+        }
+    }
+
 
     Column(
-        modifier
+        modifier = gestureModifier
             .fillMaxSize()
             .background(Color.White)
             .padding(horizontal = 12.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Header(modifier)
-        Plate(modifier, selectedSize.value, R.drawable.bread_1)
+        Plate(modifier, selectedSize.value, breadImages[selectedBreadIndex.value])
         PizzaSizeSelector(
             modifier = Modifier.padding(8.dp),
             selectedSize = selectedSize.value,
@@ -60,6 +98,32 @@ fun PizzaScreen(modifier: Modifier) {
         Spacer(modifier = Modifier.weight(1f))
     }
 }
+
+
+//@Composable
+//fun PizzaScreen(modifier: Modifier) {
+//    val selectedSize = rememberSaveable { mutableStateOf("L") }
+//
+//    Column(
+//        modifier
+//            .fillMaxSize()
+//            .background(Color.White)
+//            .padding(horizontal = 12.dp, vertical = 32.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Header(modifier)
+//        Plate(modifier, selectedSize.value, R.drawable.bread_1)
+//        PizzaSizeSelector(
+//            modifier = Modifier.padding(8.dp),
+//            selectedSize = selectedSize.value,
+//            onSizeSelected = { selectedSize.value = it }
+//        )
+//        IngredientSection(modifier)
+//        Spacer(modifier = Modifier.weight(0.1f))
+//        AddToCartBtn(modifier)
+//        Spacer(modifier = Modifier.weight(1f))
+//    }
+//}
 
 @Composable
 private fun IngredientSection(modifier: Modifier) {
@@ -151,16 +215,20 @@ fun Plate(modifier: Modifier, pizzaSize: String, bread: Int) {
                 modifier = Modifier.width(animatedSize.value)
             )
         }
-
+        val basePrice = when (pizzaSize) {
+            "s" -> 12
+            "m" -> 15
+            else -> 17
+        }
         Text(
-            text = "$17",
+            text = "$$basePrice",
+
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(8.dp)
         )
     }
 }
-
 
 
 //@Composable
@@ -239,9 +307,10 @@ fun Plate(modifier: Modifier, pizzaSize: String, bread: Int) {
 
 @Composable
 fun AddIngredient(img: Int) {
-    var isSelected = rememberSaveable { mutableStateOf(false) }
+    val isSelected = rememberSaveable { mutableStateOf(false) }
 
     Button(
+//        onClick = onToggle,
         onClick = { isSelected.value = !isSelected.value },
         shape = CircleShape,
         colors = ButtonColors(
@@ -296,7 +365,13 @@ fun PizzaSizeSelector(modifier: Modifier, selectedSize: String, onSizeSelected: 
                 ),
                 modifier = Modifier.padding(horizontal = 4.dp)
             ) {
-                Text(size)
+//                Text(size)
+                Text(
+                    text = size,
+                    color = if (isSelected) Color.Black else Color.Gray,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                )
+
             }
         }
     }
