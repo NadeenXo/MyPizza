@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -43,6 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mypizza.ui.theme.Brown
+import kotlin.random.Random
 
 @Composable
 fun PizzaScreen(modifier: Modifier) {
@@ -53,6 +56,7 @@ fun PizzaScreen(modifier: Modifier) {
         R.drawable.bread_4,
         R.drawable.bread_5
     )
+
     val onionImages = listOf(
         R.drawable.onion_1,
         R.drawable.onion_2,
@@ -117,6 +121,7 @@ fun PizzaScreen(modifier: Modifier) {
     )
 
     val selectedBreadIndex = rememberSaveable { mutableIntStateOf(0) }
+
     val breadSizes = rememberSaveable {
         mutableStateOf(List(breadImages.size) { "M" })
     }
@@ -242,17 +247,17 @@ fun AddIngredientButton(
 private fun AddToCartBtn(modifier: Modifier) {
     Button(
         onClick = {}, shape = RoundedCornerShape(10.dp), colors = ButtonColors(
-            containerColor = Color.Black, contentColor = Color.White,
-            disabledContainerColor = Color.Black,
+            containerColor = Brown, contentColor = Color.White,
+            disabledContainerColor = Brown,
             disabledContentColor = Color.White
         )
     ) {
         Icon(
             painterResource(R.drawable.shopping_cart),
             contentDescription = "shopping cart",
-            tint = Color.White, modifier = modifier.size(32.dp)
+            tint = Color.White, modifier = modifier.size(30.dp)
         )
-        Spacer(modifier.padding(4.dp))
+        Spacer(modifier.padding(vertical = 4.dp, horizontal = 8.dp))
         Text("Add to cart")
     }
 }
@@ -364,55 +369,105 @@ fun PizzaSizeSelector(modifier: Modifier, selectedSize: String, onSizeSelected: 
     }
 }
 
+//@Composable
+//fun ToppingOverlay(
+//    pizzaSize: String,
+//    selectedToppings: Set<String>,
+//    toppingImagesMap: Map<String, List<Int>>
+//) {
+//    val positions = when (pizzaSize.lowercase()) {
+//        else -> listOf(
+//            DpOffset(20.dp, 0.dp), DpOffset(40.dp, 40.dp),
+//            DpOffset(80.dp, 10.dp), DpOffset(85.dp, 50.dp),
+//            DpOffset(70.dp, 80.dp), DpOffset(10.dp, 55.dp),
+//            DpOffset(50.dp, 20.dp), DpOffset(95.dp, 75.dp)
+//        )
+
+//        val positions = when (pizzaSize.lowercase()) {
+//        "s" -> listOf(
+//            DpOffset(20.dp, 0.dp), DpOffset(40.dp, 40.dp),
+//            DpOffset(80.dp, 10.dp), DpOffset(85.dp, 50.dp),
+//            DpOffset(70.dp, 80.dp), DpOffset(10.dp, 55.dp),
+//            DpOffset(50.dp, 20.dp), DpOffset(95.dp, 75.dp)
+//        )
+//
+//        "m" -> listOf(
+//            DpOffset(30.dp, 10.dp), DpOffset(50.dp, 50.dp),
+//            DpOffset(90.dp, 20.dp), DpOffset(120.dp, 60.dp),
+//            DpOffset(80.dp, 100.dp), DpOffset(20.dp, 80.dp),
+//            DpOffset(60.dp, 30.dp), DpOffset(110.dp, 110.dp)
+//        )
+//
+//        else -> listOf(
+//            DpOffset(40.dp, 20.dp), DpOffset(60.dp, 60.dp),
+//            DpOffset(100.dp, 30.dp), DpOffset(130.dp, 70.dp),
+//            DpOffset(90.dp, 120.dp), DpOffset(30.dp, 90.dp),
+//            DpOffset(70.dp, 40.dp), DpOffset(120.dp, 130.dp)
+//        )
+
+
+//    }
+//
+//
+//    var drawn = 0
+//    for (topping in selectedToppings) {
+//        val images = toppingImagesMap[topping].orEmpty()
+//        for (img in images) {
+//            if (drawn >= positions.size) break
+//            val offset = positions[drawn]
+//            Image(
+//                painter = painterResource(id = img),
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(40.dp)
+//                    .padding(4.dp)
+//                    .offset(offset.x, offset.y)
+//            )
+//            drawn++
+//        }
+//
+//    }
+//}
+
 @Composable
 fun ToppingOverlay(
     pizzaSize: String,
     selectedToppings: Set<String>,
     toppingImagesMap: Map<String, List<Int>>
 ) {
-    val positions = when (pizzaSize.lowercase()) {
-        "s" -> listOf(
-            DpOffset(40.dp, 20.dp), DpOffset(60.dp, 60.dp),
-            DpOffset(100.dp, 30.dp), DpOffset(130.dp, 70.dp),
-            DpOffset(90.dp, 100.dp), DpOffset(30.dp, 90.dp),
-            DpOffset(70.dp, 40.dp), DpOffset(120.dp, 110.dp)
-        )
+    val basePositions = listOf(
+        DpOffset(20.dp, 0.dp), DpOffset(40.dp, 40.dp),
+        DpOffset(80.dp, 10.dp), DpOffset(85.dp, 50.dp),
+        DpOffset(70.dp, 80.dp), DpOffset(10.dp, 55.dp),
+        DpOffset(50.dp, 20.dp), DpOffset(95.dp, 75.dp)
+    )
 
-        "m" -> listOf(
-            DpOffset(50.dp, 30.dp), DpOffset(70.dp, 70.dp),
-            DpOffset(110.dp, 40.dp), DpOffset(140.dp, 80.dp),
-            DpOffset(100.dp, 120.dp), DpOffset(40.dp, 100.dp),
-            DpOffset(80.dp, 50.dp), DpOffset(130.dp, 130.dp)
-        )
-
-        else -> listOf(
-            DpOffset(60.dp, 40.dp), DpOffset(80.dp, 80.dp),
-            DpOffset(120.dp, 50.dp), DpOffset(150.dp, 90.dp),
-            DpOffset(110.dp, 140.dp), DpOffset(50.dp, 110.dp),
-            DpOffset(90.dp, 60.dp), DpOffset(140.dp, 150.dp)
-        )
-    }
-
-
-    var drawn = 0
-    for (topping in selectedToppings) {
+    selectedToppings.forEachIndexed { toppingIndex, topping ->
         val images = toppingImagesMap[topping].orEmpty()
-        for (img in images) {
-            if (drawn >= positions.size) break
-            val offset = positions[drawn]
+
+        val adjustedPositions = remember(topping) {
+            val seededRandom = Random(topping.hashCode())
+            basePositions.map {
+                val dx = seededRandom.nextInt(-10, 10).coerceIn(-20, 20).dp
+                val dy = seededRandom.nextInt(-10, 10).coerceIn(-20, 20).dp
+                DpOffset(it.x + dx, it.y + dy)
+            }
+        }
+
+        images.take(adjustedPositions.size).forEachIndexed { i, imgResId ->
+            val offset = adjustedPositions[i]
             Image(
-                painter = painterResource(id = img),
+                painter = painterResource(id = imgResId),
                 contentDescription = null,
                 modifier = Modifier
                     .size(40.dp)
-                    .padding(4.dp)
                     .offset(offset.x, offset.y)
+                    .alpha(0.9f)
             )
-            drawn++
         }
-
     }
 }
+
 
 
 @Composable
